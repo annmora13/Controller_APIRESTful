@@ -3,10 +3,12 @@ const {
     User 
 } = require('../models');
 
-const createBootcamp = async (bootcamp) => {
+const createBootcamp = async ({title, cue, description}) => {
     try {
         const curso = await Bootcamp.create({
-            name: bootcamp.name
+            title: title,
+            cue: cue,
+            description: description
         });
         console.log(`Se ha creado el curso ${JSON.stringify(curso, null, 4)}`);
         return curso;

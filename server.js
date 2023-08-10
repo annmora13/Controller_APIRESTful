@@ -18,13 +18,16 @@ const {
 const PORT = process.env.PORT;
 
 // ------USER------ 
-// http://localhost:3000/user/create/Jose%20Alberto
-app.get('/user/create/:name', async (req, res) => {
-    const name = req.params.name;
+// http://localhost:3000/user/create/firstName/Jesus/lastName/Ajencio/email/poroto@gmail.com
+app.get('/user/create/firstName/:firstName/lastName/:lastName/email/:email', async (req, res) => {
+    const firstName = req.params.firstName;
+    const lastName = req.params.lastName;
+    const email = req.params.email;
     try {
-        const usuario = await createUser({ name });
+        const usuario = await createUser({ firstName, lastName, email });
         res.status(StatusCodes.CREATED).json({ 
-            message: `usuario ${usuario.name} fue creado con éxito`,
+            message: `El alumno ${usuario.firstName} ${usuario.lastName} fue creado con éxito
+            se enviará la información al correo ${usuario.email}`,
             user: usuario 
         });
     } catch (error) {
@@ -65,14 +68,18 @@ app.get('/user', async (req, res) => {
     }
 });
 
-// http://localhost:3000/user/update/id/1/nombre/Pedro%20Picapiedra
-app.get('/user/update/id/:id/nombre/:nombre', async (req, res) => {
+// http://localhost:3000/user/update/id/1/firstName/Alejandro/lastName/Rodriguez/email/poroto@gmail.com
+app.get('/user/update/id/:id/firstName/:firstName/lastName/:lastName/email/:email', async (req, res) => {
     const id = Number(req.params.id);
-    const name = req.params.nombre;
+    const firstName = req.params.firstName;
+    const lastName = req.params.lastName;
+    const email = req.params.email;
     try {
         const actualizados = await updateUser({
             id,
-            name
+            firstName,
+            lastName,
+            email
         });
         if (actualizados) {
             if (actualizados !== -1) {
@@ -115,13 +122,16 @@ app.get('/user/delete/id/:id', async (req, res) => {
 });
 
 // ------BOOTCAMP------ 
-// http://localhost:3000/bootcamp/create/name/Curso%20A
-app.get('/bootcamp/create/name/:name', async (req, res) => {
-    const name = req.params.name;
+// http://localhost:3000/bootcamp/create/title/Danza/cue/Baile%20I/description/Requiere%20flats
+app.get('/bootcamp/create/title/:title/cue/:cue/description/:description', async (req, res) => {
+    const title = req.params.title;
+    const cue = req.params.cue;
+    const description = req.params.description;
     try {
-        const curso = await createBootcamp({ name });
+        const curso = await createBootcamp({ title, cue, description });
         res.status(StatusCodes.CREATED).json({ 
-            message: `curso ${proyecto.name} fue creado con éxito`,
+            message: `El curso ${curso.title} fue creado con éxito,
+            La ${curso.cue}, ${curso.description}`,
             project: curso 
         });
     } catch (error) {
