@@ -19,11 +19,14 @@ const createUser = async ({ firstName, lastName, email }) => {
 const updateUser = async (user) => {
     try {
         const usuario = await User.findByPk(user.id);
+        console.log('usuario: ', JSON.stringify(usuario, null, 4));
         let actualizados = [];
         if (usuario) {
-            if (usuario.firstName !== usuario.firstName) {
+            if ((usuario.firstName !== user.firstName) || 
+            (usuario.lastName !== user.lastName) || 
+            (usuario.email !== user.email)) {
                 actualizados = await User.update({
-                    firstName: userusuario.firstName,
+                    firstName: user.firstName,
                     lastName: user.lastName,
                     email: user.email
                 }, {
