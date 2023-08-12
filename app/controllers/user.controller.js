@@ -19,7 +19,6 @@ const createUser = async ({ firstName, lastName, email }) => {
 const updateUser = async (user) => {
     try {
         const usuario = await User.findByPk(user.id);
-        console.log('usuario: ', JSON.stringify(usuario, null, 4));
         let actualizados = [];
         if (usuario) {
             if ((usuario.firstName !== user.firstName) || 
@@ -54,7 +53,7 @@ const findUserById = async (userId) => {
                 {
                     model: Bootcamp,
                     as: 'bootcamp',
-                    attributes: ['id', 'name'],
+                    attributes: ['id', 'title', 'cue', 'description'],
                     through: {
                         attributes: []
                     }
@@ -71,12 +70,12 @@ const findUserById = async (userId) => {
 
 const findAllUsers = async () => {
     try {
-        const usuarios = User.findAll({
+        const usuarios = await User.findAll({
             include: [
                 {
                     model: Bootcamp,
                     as: 'bootcamp',
-                    attributes: ['id', 'name'],
+                    attributes: ['id', 'title', 'cue', 'description'],
                     through: {
                         attributes: []
                     }

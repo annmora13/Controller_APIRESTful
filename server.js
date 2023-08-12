@@ -18,7 +18,7 @@ const {
 const PORT = process.env.PORT;
 
 // ------USER------ 
-// http://localhost:3000/user/create/firstName/Jesus/lastName/Ajencio/email/poroto@gmail.com
+//check/ http://localhost:3000/user/create/firstName/Jesus/lastName/Ajencio/email/poroto@gmail.com
 app.get('/user/create/firstName/:firstName/lastName/:lastName/email/:email', async (req, res) => {
     const firstName = req.params.firstName;
     const lastName = req.params.lastName;
@@ -35,7 +35,7 @@ app.get('/user/create/firstName/:firstName/lastName/:lastName/email/:email', asy
     }
 });
 
-// http://localhost:3000/user/findById/1
+//check/ http://localhost:3000/user/findById/2
 app.get('/user/findById/:id', async (req, res) => {
     const id = Number(req.params.id);
     try {
@@ -55,7 +55,7 @@ app.get('/user/findById/:id', async (req, res) => {
     }
 });
 
-// http://localhost:3000/user
+//check/ http://localhost:3000/user
 app.get('/user', async (req, res) => {
     try {
         const usuarios = await findAllUsers();
@@ -68,7 +68,7 @@ app.get('/user', async (req, res) => {
     }
 });
 
-// http://localhost:3000/user/update/id/1/firstName/Alejandro/lastName/Rodriguez/email/poroto@gmail.com
+//check/ http://localhost:3000/user/update/id/1/firstName/Alejandro/lastName/Rodriguez/email/poroto@gmail.com
 app.get('/user/update/id/:id/firstName/:firstName/lastName/:lastName/email/:email', async (req, res) => {
     const id = Number(req.params.id);
     const firstName = req.params.firstName;
@@ -101,7 +101,7 @@ app.get('/user/update/id/:id/firstName/:firstName/lastName/:lastName/email/:emai
     }
 });
 
-// http://localhost:3000/user/delete/id/1
+//check/ http://localhost:3000/user/delete/id/1
 app.get('/user/delete/id/:id', async (req, res) => {
     const id = Number(req.params.id);
     try {
@@ -122,7 +122,7 @@ app.get('/user/delete/id/:id', async (req, res) => {
 });
 
 // ------BOOTCAMP------ 
-// http://localhost:3000/bootcamp/create/title/Danza/cue/Baile%20I/description/Requiere%20flats
+//check/ http://localhost:3000/bootcamp/create/title/Danza/cue/Baile%20I/description/Requiere%20flats
 app.get('/bootcamp/create/title/:title/cue/:cue/description/:description', async (req, res) => {
     const title = req.params.title;
     const cue = req.params.cue;
@@ -132,14 +132,14 @@ app.get('/bootcamp/create/title/:title/cue/:cue/description/:description', async
         res.status(StatusCodes.CREATED).json({ 
             message: `El curso ${curso.title} fue creado con éxito,
             La ${curso.cue}, ${curso.description}`,
-            project: curso 
+            bootcamp: curso 
         });
     } catch (error) {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
     }
 });
 
-// http://localhost:3000/bootcamp/findById/1
+//check/ http://localhost:3000/bootcamp/findById/1
 app.get('/bootcamp/findById/:id', async (req, res) => {
     const id = Number(req.params.id);
     try {
@@ -147,7 +147,7 @@ app.get('/bootcamp/findById/:id', async (req, res) => {
         if (curso) {
             res.status(StatusCodes.OK).json({ 
                 message: `Curso ${curso.name} fue encontrado con éxito`,
-                project: curso 
+                bootcamp: curso 
             });
         } else {
             res.status(StatusCodes.NOT_FOUND).json({ 
@@ -159,20 +159,20 @@ app.get('/bootcamp/findById/:id', async (req, res) => {
     }
 });
 
-// http://localhost:3000/bootcamp
+//check/ http://localhost:3000/bootcamp
 app.get('/bootcamp', async (req, res) => {
     try {
         const cursos = await findAllBootcamps();
         res.status(StatusCodes.OK).json({ 
             message: `se encontraron ${cursos.length} cursos`,
-            projects: cursos 
+            bootcamp: cursos 
         });
     } catch (error) {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
     }
 });
 
-// http://localhost:3000/bootcamp/adduser/idBootcamp/1/idUser/1
+//check/ http://localhost:3000/bootcamp/adduser/idBootcamp/2/idUser/2
 app.get('/bootcamp/adduser/idBootcamp/:idBootcamp/idUser/:idUser', async (req, res) => {
     const idBootcamp = Number(req.params.idBootcamp);
     const idUser = Number(req.params.idUser); 
@@ -180,7 +180,7 @@ app.get('/bootcamp/adduser/idBootcamp/:idBootcamp/idUser/:idUser', async (req, r
         const curso = await addUserToBootcamp(idBootcamp, idUser);
         res.status(StatusCodes.CREATED).json({ 
             message: `Se agregó usuario id ${idUser} al proyecto id ${idBootcamp}`,
-            project: curso
+            bootcamp: curso
         });
     } catch (error) {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });

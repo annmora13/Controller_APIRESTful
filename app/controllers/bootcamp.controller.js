@@ -20,7 +20,7 @@ const createBootcamp = async ({title, cue, description}) => {
 
 const addUserToBootcamp = async (bootcampId, userId) => {
     try {
-        const curso = await Project.findByPk(bootcampId);
+        const curso = await Bootcamp.findByPk(bootcampId);
         if (!curso) {
             console.log(`No se encontró curso con id ${bootcampId}`);
             return null;
@@ -31,7 +31,7 @@ const addUserToBootcamp = async (bootcampId, userId) => {
             return null;
         }
         await curso.addUser(usuario);
-        console.log(`Agredado el usuario id ${usuario.id} al proyecto con id ${bootcamp.id}`);
+        console.log(`Agredado el usuario id ${usuario.id} al proyecto con id ${bootcampId.id}`);
         return curso;
     } catch (error) {
         console.error(error);
@@ -46,7 +46,7 @@ const findBootcampById = async (id) => {
                 {
                     model: User,
                     as: 'user',
-                    attributes: ['id', 'name'],
+                    attributes: ['id', 'firstName', 'lastName', 'email'],
                     through: {
                         attributes: []
                     }
@@ -68,14 +68,14 @@ const findAllBootcamps = async () => {
                 {
                     model: User,
                     as: 'user',
-                    attributes: ['id', 'name'],
+                    attributes: ['id','firstName', 'lastName', 'email'],
                     through: {
                         attributes: []
                     }
                 }
             ]
         });
-        console.log(`Se han encontrado los cursos ${JSON.stringify(bootcamp, null, 4)}`);
+        console.log(`Se han encontrado los cursos ${JSON.stringify(cursos, null, 4)}`);
         return cursos;
     } catch (error) {
         console.error(error);
