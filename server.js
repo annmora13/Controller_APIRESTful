@@ -1,191 +1,158 @@
 const express = require('express');
 const app = express();
 require('dotenv').config();
-const { StatusCodes } = require('http-status-codes');
-const {
-    createUser,
-    findUserById,
-    findAllUsers,
-    updateUser,
-    deleteUserById
-} = require('./app/controllers/user.controller');
-const {
-    createBootcamp,
-    addUserToBootcamp,
-    findBootcampById,
-    findAllBootcamps,
-} = require('./app/controllers/bootcamp.controller');
+const userRoutes = require('./app/routes/user.routes');
+const bootcampRoutes = require('./app/routes/bootcamp.routes');
+const { User } = require('./app/models');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const util = require('util');
+const sign = util.promisify(jwt.sign);
+const { 
+    verifySingUp,
+    verifyToken 
+} = require('./app/middleware');
+const cors = require('cors');
+
 const PORT = process.env.PORT;
 
-// ------USER------ 
-//check/ http://localhost:3000/user/create/firstName/Jesus/lastName/Ajencio/email/poroto@gmail.com
-app.get('/user/create/firstName/:firstName/lastName/:lastName/email/:email', async (req, res) => {
-    const firstName = req.params.firstName;
-    const lastName = req.params.lastName;
-    const email = req.params.email;
-    try {
-        const usuario = await createUser({ firstName, lastName, email });
-        res.status(StatusCodes.CREATED).json({ 
-            message: `El alumno ${usuario.firstName} ${usuario.lastName} fue creado con éxito
-            se enviará la información al correo ${usuario.email}`,
-            user: usuario 
-        });
-    } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
-    }
-});
+// Creamos la variable de configuración para CORS
+var corsOpt = {
+    origin: '*', // Se debe reemplazar el * por el dominio de nuestro front
+    optionsSuccessStatus: 200 // Es necesario para navegadores antiguos o algunos SmartTVs
+}
 
-//check/ http://localhost:3000/user/findById/2
-app.get('/user/findById/:id', async (req, res) => {
-    const id = Number(req.params.id);
-    try {
-        const usuario = await findUserById(id);
-        if (usuario) {
-            res.status(StatusCodes.OK).json({ 
-                message: `usuario ${usuario.name} fue encontrado con éxito`,
-                user: usuario 
-            });
-        } else {
-            res.status(StatusCodes.NOT_FOUND).json({ 
-                message: `usuario id ${id} no fue encontrado`
-            });
-        }
-    } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
-    }
-});
+app.use(cors(corsOpt));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-//check/ http://localhost:3000/user
-app.get('/user', async (req, res) => {
-    try {
-        const usuarios = await findAllUsers();
-        res.status(StatusCodes.OK).json({ 
-            message: `se encontraron ${usuarios.length} usuarios`,
-            users: usuarios 
-        });
-    } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
-    }
-});
+app.use('/api/user', verifyToken); // protegemos todas las rutas de user
+app.use('/api/user', userRoutes);
+app.use('/api/project', bootcampRoutes);
 
-//check/ http://localhost:3000/user/update/id/1/firstName/Alejandro/lastName/Rodriguez/email/poroto@gmail.com
-app.get('/user/update/id/:id/firstName/:firstName/lastName/:lastName/email/:email', async (req, res) => {
-    const id = Number(req.params.id);
-    const firstName = req.params.firstName;
-    const lastName = req.params.lastName;
-    const email = req.params.email;
+// Registro
+/**
+method: POST
+url: http://localhost:3000/api/signup
+body:
+{
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "email": "mail@email.com",
+    "password": "mypassword"
+}
+*/
+app.post('/api/signup', verifySingUp, async (req, res) => {
+    // lógica del registro
     try {
-        const actualizados = await updateUser({
-            id,
+        // obteniendo los valores de entrada
+        const {
             firstName,
             lastName,
-            email
+            email,
+            password
+        } = req.body;
+
+        //Generamos aleatoriamente el salt
+        const salt = await bcrypt.genSalt(10);
+        console.log("Salt generado: " + salt);
+        // Encriptando la contraseña del usuario
+        const encryptedPassword = await bcrypt.hash(password, salt);
+
+        // Password encriptado
+        console.log("\nPassword encriptado: " + encryptedPassword);
+
+        // Creando el usuario en la bases de datos
+        const user = await User.create({
+            firstName,
+            lastName,
+            email: email.toLowerCase(), // Convertimos a minuscula
+            password: encryptedPassword,
         });
-        if (actualizados) {
-            if (actualizados !== -1) {
-                res.status(StatusCodes.CREATED).json({ 
-                    message: `usuario id ${id} fue actualizado con éxito`
-                });
-            } else {
-                res.status(StatusCodes.BAD_REQUEST).json({ 
-                    message: `usuario id ${id} no fue actualizado. No había nada que actualizar.`
-                });
+
+        // Creación del Token
+        const token = await sign(
+            {
+                userId: user.id,
+                email
+            },
+            process.env.TOKEN_KEY,
+            {
+                expiresIn: "2m",
             }
-        } else {
-            res.status(StatusCodes.NOT_FOUND).json({ 
-                message: `usuario id ${id} no fue encontrado`
-            });
-        }
-    } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
-    }
-});
+        );
+        // Token Generado
+        console.log("\nToken Generado: " + token);
 
-//check/ http://localhost:3000/user/delete/id/1
-app.get('/user/delete/id/:id', async (req, res) => {
-    const id = Number(req.params.id);
-    try {
-        const borrados = await deleteUserById(id);
-        if (borrados) {
-            res.status(StatusCodes.CREATED).json({ 
-                message: `usuario id ${id} fue borrado con éxito`
-            });
-        } else {
-            res.status(StatusCodes.NOT_FOUND).json({ 
-                message: `usuario id ${id} no fue encontrado`
-            });
-        }
-        
-    } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
-    }
-});
-
-// ------BOOTCAMP------ 
-//check/ http://localhost:3000/bootcamp/create/title/Danza/cue/Baile%20I/description/Requiere%20flats
-app.get('/bootcamp/create/title/:title/cue/:cue/description/:description', async (req, res) => {
-    const title = req.params.title;
-    const cue = req.params.cue;
-    const description = req.params.description;
-    try {
-        const curso = await createBootcamp({ title, cue, description });
-        res.status(StatusCodes.CREATED).json({ 
-            message: `El curso ${curso.title} fue creado con éxito,
-            La ${curso.cue}, ${curso.description}`,
-            bootcamp: curso 
+        // retornamos el nuevo usuario
+        res.status(201).json({
+            user,
+            token
         });
     } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
+        console.error(error);
+        res.status(500).json({ message: error.message });
     }
 });
 
-//check/ http://localhost:3000/bootcamp/findById/1
-app.get('/bootcamp/findById/:id', async (req, res) => {
-    const id = Number(req.params.id);
+// Login
+/**
+method: POST
+url: http://localhost:3000/api/signin
+body:
+{
+    "email": "mail@email.com",
+    "password": "mypassword"
+}
+*/
+app.post('/api/signin', async (req, res) => {
+    // lógica del inicio de sesión
     try {
-        const curso = await findBootcampById(id);
-        if (curso) {
-            res.status(StatusCodes.OK).json({ 
-                message: `Curso ${curso.name} fue encontrado con éxito`,
-                bootcamp: curso 
-            });
-        } else {
-            res.status(StatusCodes.NOT_FOUND).json({ 
-                message: `Curso id ${id} no fue encontrado`
-            });
+        const {
+            email,
+            password
+        } = req.body;
+
+        // Validar los datos de entrada
+        if (!(email && password)) {
+            res.status(400).json({ message: 'Todos los datos son requeridos, email y password' });
+            return;
         }
-    } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
-    }
-});
 
-//check/ http://localhost:3000/bootcamp
-app.get('/bootcamp', async (req, res) => {
-    try {
-        const cursos = await findAllBootcamps();
-        res.status(StatusCodes.OK).json({ 
-            message: `se encontraron ${cursos.length} cursos`,
-            bootcamp: cursos 
+        // Validando la existencia del usuario en la base de datos
+        const user = await User.findOne({
+            where: {
+                email
+            }
         });
+
+        if (user && (await bcrypt.compare(password, user.password))) {
+            // Se genera el Token
+            const token = await sign(
+                {
+                    userId: user.id,
+                    email
+                },
+                process.env.TOKEN_KEY, 
+                {
+                    expiresIn: "2m",
+                }
+            );
+            // Impresion por el terminal del Token generado para el usuario
+            console.log("Usuario: " + email + "\nToken: " + token);
+
+            // Retornando los datos del usuario
+            res.status(200).json({
+                token,
+                message: 'Autenticado'
+            });
+            return;
+        }
+        res.status(401).json({ message: 'Credenciales invalidas'});
     } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
+        console.error(error);
+        res.status(500).json({ message: error.message });
     }
 });
-
-//check/ http://localhost:3000/bootcamp/adduser/idBootcamp/2/idUser/2
-app.get('/bootcamp/adduser/idBootcamp/:idBootcamp/idUser/:idUser', async (req, res) => {
-    const idBootcamp = Number(req.params.idBootcamp);
-    const idUser = Number(req.params.idUser); 
-    try {
-        const curso = await addUserToBootcamp(idBootcamp, idUser);
-        res.status(StatusCodes.CREATED).json({ 
-            message: `Se agregó usuario id ${idUser} al proyecto id ${idBootcamp}`,
-            bootcamp: curso
-        });
-    } catch (error) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message });
-    }
-});
-
 
 app.listen(PORT, () => console.log(`Iniciando en puerto ${PORT}`));

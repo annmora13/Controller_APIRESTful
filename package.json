@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "dev-win": ".\\node_modules\\.bin\\nodemon.cmd",
+    "dev": ".\\node_modules\\.bin\\nodemon.cmd",
     "sync-db": "node ./scripts/createTables.js"
   },
   "keywords": [],

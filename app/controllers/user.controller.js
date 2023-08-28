@@ -1,12 +1,13 @@
 const { User, 
     Bootcamp } = require('../models');
 
-const createUser = async ({ firstName, lastName, email }) => {
+const createUser = async ({ firstName, lastName, email, password }) => {
     try {
         const usuario = await User.create({
             firstName: firstName,
             lastName: lastName,
-            email: email
+            email: email,
+            password: password
         });
         console.log(`Se ha creado el usuario ${JSON.stringify(usuario, null, 4)}`);
         return usuario;
